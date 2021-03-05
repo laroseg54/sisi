@@ -60,12 +60,12 @@ export class PlayerComponent implements OnInit {
   //MatDialog 
   openDialog() {
     this.dialog.open(ErrComponent);
-    this.router.navigate(['/player']);
+  
   } 
 
   openRules() {
     this.dialogR.open(RulesComponent);
-    this.router.navigate(['/rules']);
+   
   }
 
   //test

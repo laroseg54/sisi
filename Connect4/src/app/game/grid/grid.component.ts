@@ -21,26 +21,30 @@ import { TestBed } from '@angular/core/testing';
 
 
 export class GridComponent implements OnInit {
-  
-  public infos: JeuInfos; 
-  private gameSubject = new BehaviorSubject<JeuInfos>({ gagnant: "", fin: false,players:{ pseudo1: '',
-  color1: '',
-  pseudo2: '',
-  color2: ''}});
 
-  turn:boolean = true; //True = tour du player rouge
-  status:boolean = false; 
+  public infos: JeuInfos;
+  private gameSubject = new BehaviorSubject<JeuInfos>({
+    gagnant: "", fin: false, players: {
+      pseudo1: '',
+      color1: '',
+      pseudo2: '',
+      color2: ''
+    }
+  });
+
+  turn: boolean = true; //True = tour du player rouge
+  status: boolean = false;
 
   compteTest = 0; //placer 1 seul pion
 
   //test récup coordonnées 
-  colonneP: number; 
-  ligneP: number; 
+  colonneP: number;
+  ligneP: number;
   colorP: number;
-  redP1: number; 
+  redP1: number;
 
   //hide play button when col is full
-  isButtonVisible1 = true; 
+  isButtonVisible1 = true;
   isButtonVisible2 = true;
   isButtonVisible3 = true;
   isButtonVisible4 = true;
@@ -49,31 +53,31 @@ export class GridComponent implements OnInit {
   isButtonVisible7 = true;
 
 
-  public col = 7; 
-  public row = 6; 
+  public col = 7;
+  public row = 6;
   redPawns: number = 21;
-  yellowPawns:number = 21;  
+  yellowPawns: number = 21;
 
   //service
-  grille3: number[][]; 
+  grille3: number[][];
 
-  public case: CaseData; 
-  
+  public case: CaseData;
+
 
   //constructor(public boardservice: BoardService) { }
-  constructor(public boardservice: BoardService, playerService: PlayerService, private colorSchemeService: ColorSchemeService) { 
-    playerService.getGameDataObservable().subscribe(infos => this.infos = infos );
+  constructor(public boardservice: BoardService, playerService: PlayerService, private colorSchemeService: ColorSchemeService) {
+    playerService.getGameDataObservable().subscribe(infos => this.infos = infos);
     this.colorSchemeService.load();
-   // playerService.initializeBoard(this.row, this.col);
+    // playerService.initializeBoard(this.row, this.col);
     this.pawn = 0;
   }
 
-  public pawn: 0|1|2;
+  public pawn: 0 | 1 | 2;
 
-  ngOnInit():void {
+  ngOnInit(): void {
     this.grille3 = this.boardservice.emptyGrid; //initialise la grille à 0 (white) dans chaque case depuis le service
     console.log("My board looks like this : " + this.grille3);
-    console.table(this.grille3); 
+    console.table(this.grille3);
   }
 
   //bouton play again à la fin d'une partie
@@ -86,762 +90,312 @@ export class GridComponent implements OnInit {
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0] 
+      [0, 0, 0, 0, 0, 0, 0]
     ];
+    this.redPawns = 21;
+    this.yellowPawns = 21;
     console.log("GRILLE RENOUVELÉE : " + this.grille3);
+    this.isButtonVisible1 = true;
+    this.isButtonVisible2 = true;
+    this.isButtonVisible3 = true;
+    this.isButtonVisible4 = true;
+    this.isButtonVisible5 = true;
+    this.isButtonVisible6 = true;
+    this.isButtonVisible7 = true;
   }
 
-//fonction qui vérifie si il y a un gagnant rouge en vertical (7 colonnes)
-/* on entre dans cette fonction si le dernier pion rouge placé
- * est au minimum sur la 4ème ligne en partant du bas ou plus haut
- */
-verticaleR() {
-  if (this.ligneP <= 2) {
-    if (this.grille3[this.ligneP][this.colonneP] === 1) { //always TRUE 
-      this.ligneP++;
-      if (this.grille3[this.ligneP][this.colonneP] === 1) {
-        this.ligneP++;
-        if (this.grille3[this.ligneP][this.colonneP] === 1) {
-          this.ligneP++;
-          if (this.grille3[this.ligneP][this.colonneP] === 1) {
-             //4 pions alignés à la verticale
-             this.infos.fin = true; 
-             if (this.infos.players.color1 === "red") {
-              this.infos.gagnant = this.infos.players.pseudo1;
-             }
-             else {
-              this.infos.gagnant = this.infos.players.pseudo2;
-             } 
+  //fonction qui vérifie si il y a un gagnant rouge en vertical (7 colonnes)
+  /* on entre dans cette fonction si le dernier pion rouge placé
+   * est au minimum sur la 4ème ligne en partant du bas ou plus haut
+   */
+  verticale(couleur: number) {
+    let colonne = this.colonneP;
+    let ligne = this.ligneP;
+    if (ligne <= 2) {
+      if (this.grille3[ligne][colonne] === couleur) { //always TRUE 
+        ligne++;
+        if (this.grille3[ligne][colonne] === couleur) {
+          ligne++;
+          if (this.grille3[ligne][colonne] === couleur) {
+            ligne++;
+            if (this.grille3[ligne][colonne] === couleur) {
+              //4 pions alignés à la verticale
+              this.infos.fin = true;
+              let couleurJoueur: string = couleur === 1 ? "red" : "yellow";
+              if (this.infos.players.color1 === couleurJoueur) {
+                this.infos.gagnant = this.infos.players.pseudo1;
+              }
+              else {
+                this.infos.gagnant = this.infos.players.pseudo2;
+              }
 
-             alert("GameOver by vertical !");            }
-        }
-      }
-    }
-  }
-}
-
-//fonction qui vérifie si il y a un gagnant jaune en vertical (7 colonnes)
-/* on entre dans cette fonction si le dernier pion jaune placé
- * est au minimum sur la 4ème ligne en partant du bas ou plus haut
- */
-verticaleJ() {
-  if (this.ligneP <= 2) {
-    if (this.grille3[this.ligneP][this.colonneP] === 2) { //always TRUE 
-      this.ligneP++;
-      if (this.grille3[this.ligneP][this.colonneP] === 2) {
-        this.ligneP++;
-        if (this.grille3[this.ligneP][this.colonneP] === 2) {
-          this.ligneP++;
-          if (this.grille3[this.ligneP][this.colonneP] === 2) {
-             //4 pions alignés à la verticale
-             this.infos.fin = true; 
-             if (this.infos.players.color1 === "yellow") {
-              this.infos.gagnant = this.infos.players.pseudo1;
-             }
-             else {
-              this.infos.gagnant = this.infos.players.pseudo2;
-             } 
-
-             alert("GameOver by vertical !");
+              alert("GameOver by vertical !");
             }
+          }
         }
       }
     }
   }
-}
 
-//fonction qui vérifie si il y a un gagnant rouge à l'horizontal 
-horizontaleR() {
-  let count = 0;
-  for (let j = 0 ; j <= this.col ; j++) {
-    if (this.grille3[this.ligneP][j] === 1) {
-      count++;
-    }
-    else count=0; 
-    if (count >= 4) {
-      alert("GameOver by horizontal !");
-      this.infos.fin = true; 
-      if (this.infos.players.color1 === "red") {
-        this.infos.gagnant = this.infos.players.pseudo1;
-       }
-      else {
-        this.infos.gagnant = this.infos.players.pseudo2;
-      } 
-    }
-  }
-}
 
-//fonction qui vérifie si il y a un gagnant jaune à l'horizontal 
-horizontaleJ() {
-  let count = 0;
-  for (let j = 0 ; j <= this.col ; j++) {
-    if (this.grille3[this.ligneP][j] === 2) {
-      count++;
-    }
-    else count=0; 
-    if (count >= 4) {
-      alert("GameOver by horizontal !");
-      this.infos.fin = true; 
-      if (this.infos.players.color1 === "yellow") {
-        this.infos.gagnant = this.infos.players.pseudo1;
-       }
-      else {
-        this.infos.gagnant = this.infos.players.pseudo2;
-      } 
-    }
-  }
-}
 
-diagonaleR() {
-  let align:number = 0;
-  let debC: number = this.colonneP - 3; 
-  let finC: number = this.colonneP + 3;
-  let debL: number = this.ligneP + 3;
-  let finL: number = this.ligneP - 3;
-
-  while (debL >= this.grille3.length || debC < 0) {
-    debL--;
-    debC++;
-  }
-  while (finL < 0 || finC >= this.grille3[0].length) {
-    finL++;
-    finC--;
-  }
-
-  console.log("debC : " + debC + "finC : " + finC + "debL : " + debL + "finL : " + finL);
-
-  while (debL >= finL && debC <= finC && align < 4) {
-    if (this.grille3[debL][debC] == 1) {
-      align++;
-    }
-    else {
-      align = 0;
-    }
-
-    debC++;
-    debL--; 
-  }
-  if (align >= 4) {
-    alert("GameOver by RED DIAGONAL");
-    this.infos.fin = true;
-    if (this.infos.players.color1 === "red") {
-      this.infos.gagnant = this.infos.players.pseudo1;
-     }
-    else {
-      this.infos.gagnant = this.infos.players.pseudo2;
+  //fonction qui vérifie si il y a un gagnant rouge à l'horizontal 
+  horizontale(couleur: number) {
+    let count = 0;
+    let ligne: number = this.ligneP;
+    for (let j = 0; j <= this.col; j++) {
+      if (this.grille3[ligne][j] === couleur) {
+        count++;
+      }
+      else count = 0;
+      if (count >= 4) {
+        alert("GameOver by horizontal !");
+        this.infos.fin = true;
+        let couleurJoueur: string = couleur === 1 ? "red" : "yellow";
+        if (this.infos.players.color1 === couleurJoueur) {
+          this.infos.gagnant = this.infos.players.pseudo1;
+        }
+        else {
+          this.infos.gagnant = this.infos.players.pseudo2;
+        }
+      }
     }
   }
 
 
 
+  diagonale(couleur: number) {
+    let align: number = 0;
+    let debC: number = this.colonneP - 3;
+    let finC: number = this.colonneP + 3;
+    let debL: number = this.ligneP + 3;
+    let finL: number = this.ligneP - 3;
 
 
+    while (debL >= this.grille3.length || debC < 0) {
+      debL--;
+      debC++;
+    }
+    while (finL < 0 || finC >= this.grille3[0].length) {
+      finL++;
+      finC--;
+    }
 
+    console.log("debC : " + debC + "finC : " + finC + "debL : " + debL + "finL : " + finL);
 
-
-
-
-
-
-
-
-  /*for (let j = 3 ; j >= 0 ; j--) {
-    for (let i = 0; i < this.row ; i++) {
-      if (this.grille3[i][j] == 1) {
+    while (debL >= finL && debC <= finC && align < 4) {
+      if (this.grille3[debL][debC] === couleur) {
         align++;
-        console.log("ALIGN = " + align);
-        if (align >= 4) {
-          alert(("GameOver by red diagonal on 3 3"));
+      }
+      else {
+        align = 0;
+      }
+
+      debC++;
+      debL--;
+    }
+    console.log("diagonale alignement " + align);
+    if (align >= 4) {
+
+      this.infos.fin = true;
+      let couleurJoueur: string = couleur === 1 ? "red" : "yellow";
+      if (this.infos.players.color1 === couleurJoueur) {
+        this.infos.gagnant = this.infos.players.pseudo1;
+      }
+      else {
+        this.infos.gagnant = this.infos.players.pseudo2;
+      }
+      alert("GameOver by " + couleurJoueur + " DIAGONAL");
+    }
+  }
+    
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*for (let j = 3 ; j >= 0 ; j--) {
+      for (let i = 0; i < this.row ; i++) {
+        if (this.grille3[i][j] == 1) {
+          align++;
+          console.log("ALIGN = " + align);
+          if (align >= 4) {
+            alert(("GameOver by red diagonal on 3 3"));
+          }
         }
       }
-    }
-  }*/
-  /*if (this.colonneP == 3 && this.ligneP <= 2) {
-    if (this.grille3[this.ligneP][this.colonneP] == 1) {
-      align++;
-      console.log("ALIGN = " + align);
-      console.log("PREMIÈRE BOUCLE");
-      this.ligneP++;
-      this.colonneP--; 
+    }*/
+    /*if (this.colonneP == 3 && this.ligneP <= 2) {
       if (this.grille3[this.ligneP][this.colonneP] == 1) {
         align++;
         console.log("ALIGN = " + align);
+        console.log("PREMIÈRE BOUCLE");
         this.ligneP++;
-        this.colonneP--;
+        this.colonneP--; 
         if (this.grille3[this.ligneP][this.colonneP] == 1) {
           align++;
           console.log("ALIGN = " + align);
           this.ligneP++;
           this.colonneP--;
           if (this.grille3[this.ligneP][this.colonneP] == 1) {
-            //4 pions alignés diagonale
-            this.infos.fin = true; 
-            if (this.infos.players.color1 === "red") {
-              this.infos.gagnant = this.infos.players.pseudo1;
-            }
-            else {
-              this.infos.gagnant = this.infos.players.pseudo2;
-            }
-            alert("GameOver RED DIAGONAL");
-          }
-        }
-      }
-    }
-  }*/
-
-}
-
-drawR() { //finit le jeu quand tous les pions rouges ont été posés
-  if (this.redPawns == 0) {
-    this.infos.fin = true;
-    alert("Game ended in a tie");
-    this.infos.gagnant = "No one";
-  }
-}
-
-drawY() { //finit le jeu quand tous les pions jaunes ont été posés
-  if (this.yellowPawns == 0) {
-    this.infos.fin = true;
-    alert("Game ended in a tie");
-    this.infos.gagnant = "No one";
-  }
-}
-
-verifGagnantR() {
-    this.verticaleR();
-    this.horizontaleR();
-    this.diagonaleR();
-    this.drawR();
-} 
-
-verifGagnantJ() {
-  this.verticaleJ();
-  this.horizontaleJ();
-  this.drawY();
-}
-
-
-
-//--------------------- FONCTIONS POUR PLACER LES PIONS DANS GRILLE3 -----------------------------------------
-colonne1Rouge(this:GridComponent) { 
-  for (let j = 0 ; ; ) { //colonne1
-    for (let i = 5 ; i >=0 ; i--) { 
-      if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-      }
-      else {
-        this.grille3[i][j] = 1; //1 vaut 1 pion rouge
-        this.ligneP = i; 
-        this.colonneP = j;
-        this.redPawns--; //to determine if there is a draw
-        this.verifGagnantR();
-        
-        //changer couleur case 
-        //this.status=!this.status; 
-        //console.log("STATUS : " +this.status);
-        //
-        this.compteTest = 1; //var prend 1 au lieu de 0  
-        if (this.compteTest === 1) {
-          break; //permet de ne placer qu'UN SEUL pion
-        }   
-      }
-    } 
-      //------------------- CHANGER COULEUR CASE -------------------
-      //for (let j = 0 ; ;) {
-       // for (let i = this.ligneP ; ;) {
-         // this.pawn = 1;
-          //console.log("EMPLACEMENENT I J = " + j + " ; " + i);
-        //}
-      //}
-      //---------------------------------------------------------
-     
-    //Fait disparaître le bouton si la colonne est remplie 
-    if (this.grille3[0][0] === 1 || this.grille3[0][0] === 2) {
-      this.isButtonVisible1 = false; 
-    }
-    
-    this.turn=!this.turn; //passer au tour des jaunes 
-    break; //sinon boucle infinie 
-  }
-  console.log("1 PION ROUGE PLACÉ !");
-  console.log("New board : " + this.grille3); 
-  console.table(this.grille3); 
-}
-
-colonne1Jaune(this:GridComponent) {
-  for (let j = 0 ; ; ) { //colonne1
-    for (let i = 5 ; i >=0 ; i--) { 
-      if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-        //console.log("JE SUIS DANS LE IF"); 
-      }
-      else {
-        this.grille3[i][j] = 2; //2 vaut 1 pion jaune
-        this.ligneP = i;
-        this.colonneP = j;
-        this.yellowPawns--;
-        this.verifGagnantJ();
-        //changer couleur case
-        this.status=!this.status; 
-        //console.log("STATUS : " +this.status);
-        //
-
-        this.compteTest = 1; //var prend 1 au lieu de 0  
-        if (this.compteTest === 1) {
-          break; //permet de ne placer qu'UN SEUL pion
-        }     
-      } 
-    }
-    //Fait disparaître le bouton si la colonne est remplie 
-    if (this.grille3[0][0] === 1 || this.grille3[0][0] === 2) {
-      this.isButtonVisible1 = false; 
-    }
-    //
-    this.turn=!this.turn; //passer au tour des rouges 
-    break; //sinon boucle infinie 
-  }
-  console.log("1 PION JAUNE PLACÉ !");
-  console.log("New board : " + this.grille3);
-  console.table(this.grille3);
-}
-
-colonne2Rouge(this:GridComponent) {
-for (let j = 1 ; ; ) { 
-    for (let i = 5 ; i >=0 ; i--) { 
-      if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-        //console.log("JE SUIS DANS LE IF"); 
-      }
-      else {
-        this.grille3[i][j] = 1;
-        this.ligneP = i;
-        this.colonneP = j; 
-        this.redPawns--;
-        this.verifGagnantR();
-        //changer couleur case 
-        //this.status=!this.status; 
-        //console.log("STATUS : " +this.status);
-        //
-        this.compteTest = 1;   
-        if (this.compteTest === 1) {
-          break; 
-        }     
-      } 
-    }
-    //Fait disparaître le bouton si la colonne est remplie 
-    if (this.grille3[0][1] === 1 || this.grille3[0][1] === 2) {
-      this.isButtonVisible2 = false; 
-    }
-    
-    this.turn=!this.turn;  
-    break; 
-  }
-  console.log("1 PION ROUGE PLACÉ !");
-  console.log("New board : " + this.grille3); 
-  console.table(this.grille3);
-}
-
-colonne2Jaune(this:GridComponent) {
-  for (let j = 1 ; ; ) { 
-    for (let i = 5 ; i >=0 ; i--) { 
-      if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-        //console.log("JE SUIS DANS LE IF"); 
-      }
-      else {
-        this.grille3[i][j] = 2; 
-        this.ligneP = i;
-        this.colonneP = j;
-        this.yellowPawns--;
-        this.verifGagnantJ();
-        
-        //changer couleur case 
-        this.status=!this.status; 
-        //console.log("STATUS : " +this.status);
-        //
-
-        this.compteTest = 1; 
-        if (this.compteTest === 1) {
-          break; 
-        }     
-      } 
-    }
-    //Fait disparaître le bouton si la colonne est remplie 
-    if (this.grille3[0][1] === 1 || this.grille3[0][1] === 2) {
-      this.isButtonVisible2 = false; 
-    }
-    //
-    this.turn=!this.turn; 
-    break; 
-  }
-  console.log("1 PION JAUNE PLACÉ !");
-  console.log("New board : " + this.grille3); 
-  console.table(this.grille3);
-}
-
-colonne3Rouge(this:GridComponent) {
-  for (let j = 2 ; ; ) { 
-      for (let i = 5 ; i >=0 ; i--) { 
-        if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-          //console.log("JE SUIS DANS LE IF"); 
-        }
-        else {
-          this.grille3[i][j] = 1; 
-          this.ligneP = i;
-          this.colonneP = j;
-          this.redPawns--;
-          this.verifGagnantR();
-          
-          
-          //changer couleur case 
-          //this.status=!this.status; 
-          //console.log("STATUS : " +this.status);
-          //
-          this.compteTest = 1;   
-          if (this.compteTest === 1) {
-            break; 
-          }     
-        } 
-      }
-      //Fait disparaître le bouton si la colonne est remplie 
-      if (this.grille3[0][2] === 1 || this.grille3[0][2] === 2) {
-        this.isButtonVisible3 = false; 
-      }
-      
-      this.turn=!this.turn; 
-      break; 
-    }
-    console.log("1 PION ROUGE PLACÉ !");
-    console.log("New board : " + this.grille3); 
-    console.table(this.grille3);
-  }
-
-colonne3Jaune(this:GridComponent) {
-    for (let j = 2 ; ; ) { 
-        for (let i = 5 ; i >=0 ; i--) { 
-          if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-            //console.log("JE SUIS DANS LE IF"); 
-          }
-          else {
-            this.grille3[i][j] = 2; 
-            this.ligneP = i;
-            this.colonneP = j;
-            this.yellowPawns--;
-            this.verifGagnantJ();
-            
-            //changer couleur case 
-            this.status=!this.status; 
-            //console.log("STATUS : " +this.status);
-            //
-    
-            this.compteTest = 1;   
-            if (this.compteTest === 1) {
-              break; 
-            }     
-          } 
-        }
-        //Fait disparaître le bouton si la colonne est remplie 
-        if (this.grille3[0][2] === 1 || this.grille3[0][2] === 2) {
-          this.isButtonVisible3 = false; 
-        }
-        //
-        this.turn=!this.turn; 
-        break; 
-      }
-      console.log("1 PION JAUNE PLACÉ !");
-      console.log("New board : " + this.grille3); 
-      console.table(this.grille3);
-}
-
-colonne4Rouge(this:GridComponent) {
-  for (let j = 3 ; ; ) { 
-    for (let i = 5 ; i >=0 ; i--) { 
-      if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-        //console.log("JE SUIS DANS LE IF"); 
-      }
-      else {
-        this.grille3[i][j] = 1; 
-        this.ligneP = i;
-        this.colonneP = j;
-        this.redPawns--;
-        this.verifGagnantR();
-       
-        //changer couleur case 
-        //this.status=!this.status; 
-        //console.log("STATUS : " +this.status);
-        //
-        this.compteTest = 1;   
-          if (this.compteTest === 1) {
-            break; 
-          }     
-        } 
-      }
-      //Fait disparaître le bouton si la colonne est remplie 
-      if (this.grille3[0][3] === 1 || this.grille3[0][3] === 2) {
-        this.isButtonVisible4 = false; 
-      }
-      
-      this.turn=!this.turn; 
-      break; 
-  }
-  console.log("1 PION ROUGE PLACÉ !");
-  console.log("New board : " + this.grille3); 
-  console.table(this.grille3);
-}
-
-colonne4Jaune(this:GridComponent) {
-        for (let j = 3 ; ; ) { 
-            for (let i = 5 ; i >=0 ; i--) { 
-              if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-                //console.log("JE SUIS DANS LE IF"); 
+            align++;
+            console.log("ALIGN = " + align);
+            this.ligneP++;
+            this.colonneP--;
+            if (this.grille3[this.ligneP][this.colonneP] == 1) {
+              //4 pions alignés diagonale
+              this.infos.fin = true; 
+              if (this.infos.players.color1 === "red") {
+                this.infos.gagnant = this.infos.players.pseudo1;
               }
               else {
-                this.grille3[i][j] = 2; 
-                this.ligneP = i;
-                this.colonneP = j;
-                this.yellowPawns--;
-                this.verifGagnantJ();
-               
-                //changer couleur case 
-                this.status=!this.status; 
-                //console.log("STATUS : " +this.status);
-                //
-        
-                this.compteTest = 1;   
-                if (this.compteTest === 1) {
-                  break; 
-                }     
-              } 
-            }
-            //Fait disparaître le bouton si la colonne est remplie 
-            if (this.grille3[0][3] === 1 || this.grille3[0][3] === 2) {
-              this.isButtonVisible4 = false; 
-            }
-            //
-            this.turn=!this.turn; 
-            break; 
-          }
-          console.log("1 PION JAUNE PLACÉ !");
-          console.log("New board : " + this.grille3); 
-          console.table(this.grille3);
-}
-
-colonne5Rouge(this:GridComponent) {
-  for (let j = 4 ; ; ) { 
-    for (let i = 5 ; i >=0 ; i--) { 
-      if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-        //console.log("JE SUIS DANS LE IF"); 
-      }
-      else {
-        this.grille3[i][j] = 1; 
-        this.ligneP = i;
-        this.colonneP = j;
-        this.redPawns--;
-        this.verifGagnantR();
-        
-        //changer couleur case 
-        //this.status=!this.status; 
-        //console.log("STATUS : " +this.status);
-        //
-        this.compteTest = 1;   
-        if (this.compteTest === 1) {
-          break; 
-        }     
-      } 
-    }
-    //Fait disparaître le bouton si la colonne est remplie 
-    if (this.grille3[0][4] === 1 || this.grille3[0][4] === 2) {
-      this.isButtonVisible5 = false; 
-    }
-    
-    this.turn=!this.turn; 
-    break; 
-  }
-  console.log("1 PION ROUGE PLACÉ !");
-  console.log("New board : " + this.grille3); 
-  console.table(this.grille3);
-}
-
-colonne5Jaune(this:GridComponent) {
-            for (let j = 4 ; ; ) { 
-                for (let i = 5 ; i >=0 ; i--) { 
-                  if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-                    //console.log("JE SUIS DANS LE IF"); 
-                  }
-                  else {
-                    this.grille3[i][j] = 2; 
-                    this.ligneP = i;
-                    this.colonneP = j;
-                    this.yellowPawns--;
-                    this.verifGagnantJ();
-                  
-                    //changer couleur case 
-                    this.status=!this.status; 
-                    //console.log("STATUS : " +this.status);
-                    //
-            
-                    this.compteTest = 1;   
-                    if (this.compteTest === 1) {
-                      break; 
-                    }     
-                  } 
-                }
-                //Fait disparaître le bouton si la colonne est remplie 
-                if (this.grille3[0][4] === 1 || this.grille3[0][4] === 2) {
-                  this.isButtonVisible5 = false; 
-                }
-                //
-                this.turn=!this.turn; 
-                break; 
+                this.infos.gagnant = this.infos.players.pseudo2;
               }
-              console.log("1 PION JAUNE PLACÉ !");
-              console.log("New board : " + this.grille3); 
-              console.table(this.grille3);
-}
+              alert("GameOver RED DIAGONAL");
+            }
+          }
+        }
+      }
+    }*/
 
-colonne6Rouge(this:GridComponent) {
-  for (let j = 5 ; ; ) { 
-    for (let i = 5 ; i >=0 ; i--) { 
-      if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-        //console.log("JE SUIS DANS LE IF"); 
+  
+
+  diagonale2(couleur : Number) {
+    // on parcourt la diagonale des septs cases d'alignement possible en partant du bas de la grille et en remontant vers la gauche
+    let align: number = 0;
+    let debC : number = this.colonneP + 3;
+    let finC : number = this.colonneP - 3;
+    let debL : number = this.ligneP + 3;
+    let finL : number = this.ligneP - 3;
+    // on cherche un début et une fin pour la diagonale qui ne soient pas en dehors de la grille 
+    while(debL>= this.grille3.length || debC >= this.grille3[0].length){
+      debL--;
+      debC--;
+    }
+    while(finL<0 || finC < 0){
+      finL++;
+      finC++;
+    }
+    
+   
+    console.log(debC,finC,debL,finL);
+    
+    while (debL >= finL && debC>=finC && align < 4) {
+
+      if (this.grille3[debL][debC] === couleur) {
+        align++;
       }
       else {
-        this.grille3[i][j] = 1; 
+        align = 0
+      }
+
+      debC--;
+      debL--;
+
+    }
+
+    
+
+    if (align >= 4) {
+
+      this.infos.fin = true;
+      let couleurJoueur: string = couleur === 1 ? "red" : "yellow";
+      if (this.infos.players.color1 === couleurJoueur) {
+        this.infos.gagnant = this.infos.players.pseudo1;
+      }
+      else {
+        this.infos.gagnant = this.infos.players.pseudo2;
+      }
+      alert("GameOver by " + couleurJoueur + " DIAGONAL");
+    }
+
+
+  }
+
+  draw() { //finit le jeu quand tous les pions rouges ont été posés
+    if (this.redPawns == 0 || this.yellowPawns == 0) {
+      this.infos.fin = true;
+      alert("Game ended in a tie");
+      this.infos.gagnant = "No one";
+    }
+  }
+
+  verifGagnant(couleur: number) {
+    this.verticale(couleur);
+    this.horizontale(couleur);
+    this.diagonale(couleur);
+    this.diagonale2(couleur);
+    this.draw();
+  }
+
+
+
+
+
+  //--------------------- FONCTIONS POUR PLACER LES PIONS DANS GRILLE3 -----------------------------------------
+  colonne(this: GridComponent, couleur: number, colonne: number) {
+
+    for (let i = 5; i >= 0; i--) {
+      if (this.grille3[i][colonne] === 1 || this.grille3[i][colonne] === 2) {
+      }
+      else {
+        this.grille3[i][colonne] = couleur; //1 vaut 1 pion rouge
         this.ligneP = i;
-        this.colonneP = j;
-        this.redPawns--;
-        this.verifGagnantR();
-      
+        this.colonneP = colonne;
+        if (couleur === 1) {
+          this.redPawns--; //to determine if there is a draw
+        }
+        else {
+          this.yellowPawns--;
+        }
+
+        this.verifGagnant(couleur);
+
         //changer couleur case 
         //this.status=!this.status; 
         //console.log("STATUS : " +this.status);
         //
-
-        this.compteTest = 1; 
+        this.compteTest = 1; //var prend 1 au lieu de 0  
         if (this.compteTest === 1) {
-          break; 
-        }     
-      } 
-    }
-    //Fait disparaître le bouton si la colonne est remplie 
-    if (this.grille3[0][5] === 1 || this.grille3[0][5] === 2) {
-      this.isButtonVisible6 = false; 
-    }
-    
-    this.turn=!this.turn; 
-    break; 
-  }
-  console.log("1 PION ROUGE PLACÉ !");
-  console.log("New board : " + this.grille3); 
-  console.table(this.grille3);
-}
-
-colonne6Jaune(this:GridComponent) {
-  for (let j = 5 ; ; ) { 
-    for (let i = 5 ; i >=0 ; i--) { 
-      if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-        //console.log("JE SUIS DANS LE IF"); 
+          break; //permet de ne placer qu'UN SEUL pion
+        }
       }
-      else {
-        this.grille3[i][j] = 2; 
-        this.ligneP = i;
-        this.colonneP = j;
-        this.yellowPawns--;
-        this.verifGagnantJ();
-       
-        //changer couleur case 
-        this.status=!this.status; 
-        //console.log("STATUS : " +this.status);
-        //
+    }
+    //------------------- CHANGER COULEUR CASE -------------------
+    //for (let j = 0 ; ;) {
+    // for (let i = this.ligneP ; ;) {
+    // this.pawn = 1;
+    //console.log("EMPLACEMENENT I J = " + j + " ; " + i);
+    //}
+    //}
+    //---------------------------------------------------------
 
-        this.compteTest = 1; 
-        if (this.compteTest === 1) {
-          break; 
-        }     
-      } 
-    }
     //Fait disparaître le bouton si la colonne est remplie 
-    if (this.grille3[0][5] === 1 || this.grille3[0][5] === 2) {
-      this.isButtonVisible6 = false; 
+    if (this.grille3[0][0] === 1 || this.grille3[0][0] === 2) {
+      this.isButtonVisible1 = false;
     }
-    //
-    this.turn=!this.turn; 
-    break; 
+
+    this.turn = !this.turn; //passer au tour des jaunes 
+
+
+    console.log("1 PION PLACÉ !");
+    console.log("New board : " + this.grille3);
+    console.table(this.grille3);
   }
-  console.log("1 PION JAUNE PLACÉ !");
-  console.log("New board : " + this.grille3); 
-  console.table(this.grille3);
 }
 
-colonne7Rouge(this:GridComponent) {
-  for (let j = 6 ; ; ) { 
-    for (let i = 5 ; i >=0 ; i--) { 
-      if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-        //console.log("JE SUIS DANS LE IF"); 
-      }
-      else {
-        this.grille3[i][j] = 1; 
-        this.ligneP = i;
-        this.colonneP = j;
-        this.redPawns--;
-        this.verifGagnantR();
-        
-        //changer couleur case 
-        this.status=!this.status; 
-        //console.log("STATUS : " +this.status);
-        //
 
-        this.compteTest = 1; 
-        if (this.compteTest === 1) {
-          break; 
-        }     
-      } 
-    }
-    //Fait disparaître le bouton si la colonne est remplie 
-    if (this.grille3[0][6] === 1 || this.grille3[0][6] === 2) {
-      this.isButtonVisible7 = false; 
-    }
-    
-    this.turn=!this.turn; 
-    break; 
-  }
-  console.log("1 PION ROUGE PLACÉ !");
-  console.log("New board : " + this.grille3); 
-  console.table(this.grille3);
-}
 
-colonne7Jaune(this:GridComponent) {
-  for (let j = 6 ; ; ) { 
-    for (let i = 5 ; i >=0 ; i--) { 
-      if (this.grille3[i][j] === 1 || this.grille3[i][j] === 2) {
-        //console.log("JE SUIS DANS LE IF"); 
-      }
-      else {
-        this.grille3[i][j] = 2; 
-        this.ligneP = i;
-        this.colonneP = j;
-        this.yellowPawns--;
-        this.verifGagnantJ();
-       
-        //changer couleur case 
-        this.status=!this.status; 
-        //console.log("STATUS : " +this.status);
-        //
 
-        this.compteTest = 1; 
-        if (this.compteTest === 1) {
-          break; 
-        }     
-      } 
-    }
-    //Fait disparaître le bouton si la colonne est remplie 
-    if (this.grille3[0][6] === 1 || this.grille3[0][6] === 2) {
-      this.isButtonVisible7 = false; 
-    }
-    //
-    this.turn=!this.turn; 
-    break; 
-  }
-  console.log("1 PION JAUNE PLACÉ !");
-  console.log("New board : " + this.grille3); 
-  console.table(this.grille3);
-}
 //-----------------------------------------------------------------------
 
   //ngOnInit(): void {
@@ -981,4 +535,3 @@ colonne7Jaune(this:GridComponent) {
     }
   }*/
 //---------------------------------------------------
-}
